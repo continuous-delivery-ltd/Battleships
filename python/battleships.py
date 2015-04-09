@@ -1,7 +1,5 @@
-from python.gameSheet import GameSheet
 from python.game_utils import random_location
 from python.orientation import Horizontal, Vertical
-from python.rules import Rules
 from python.ships import AircraftCarrier, Battleship, Cruiser, Destroyer, Submarine, GameOver
 
 
@@ -20,17 +18,19 @@ class BattleShips(object):
             self.players[player] = self.game_sheet_factory.create_game_sheet()
 
     def place_ship(self, player, ship_details):
-        self.players[player].add_ship(self._create_ship(ship_details))
+        ship = self._create_ship(ship_details)
+        self.players[player].add_ship(ship)
+
+    def place_ships(self, player):
+        self.players[player].position_ships()
 
     def fire(self, player, location):
         fire_result = self._other_players_sheet(player).fire(location)
 
         if isinstance(fire_result, GameOver):
-            self.scores[player] += 1
-            raise Warning("Game Over - %s Wins!" % player)
+            self._end_game(player)
 
-        if self.computer_player:
-            self.players[player].fire(random_location())
+        self._computers_move(player)
 
         return fire_result
 
@@ -46,6 +46,14 @@ class BattleShips(object):
     def _create_ship(self, ship_details):
         ship_class, location, orientation = parse_ship_details(ship_details)
         return ship_class(location, orientation)
+
+    def _computers_move(self, player):
+        if self.computer_player:
+            self.players[player].fire(random_location())
+
+    def _end_game(self, player):
+        self.scores[player] += 1
+        raise Warning("Game Over - %s Wins!" % player)
 
     def _other_players_sheet(self, player):
         return self.players[self._other_player(player)]
@@ -78,14 +86,3 @@ def _orientation(orientation):
         return Horizontal
     else:
         return Vertical
-
-
-
-if __name__ == "__main__":
-    battleships = BattleShips()
-
-    print battleships.new_game()
-
-
-
-
