@@ -1,7 +1,6 @@
 from python.game_utils import random_location
 from python.orientation import Horizontal, Vertical
 from python.ships import AircraftCarrier, Battleship, Cruiser, Destroyer, Submarine, GameOver
-from python.game_stats_repository import GameStatsRepository
 
 
 class BattleShips(object):
@@ -9,6 +8,7 @@ class BattleShips(object):
     def __init__(self, game_sheet_factory, game_stats_repo, player1, player2):
         self.game_sheet_factory = game_sheet_factory
         self.game_stats_repo = game_stats_repo
+
         self.players = {player1: None, player2: None}
         self.scores = {}
         self.computer_player = "Computer" in [player1, player2]
@@ -20,7 +20,11 @@ class BattleShips(object):
             self.players[player] = self.game_sheet_factory.create_game_sheet()
 
     def place_ship(self, player, ship_details):
-        self.players[player].add_ship(self._create_ship(ship_details))
+        ship = self._create_ship(ship_details)
+        self.players[player].add_ship(ship)
+
+    def place_ships(self, player):
+        self.players[player].position_ships()
 
     def fire(self, player, location):
         fire_result = self._other_players_sheet(player).fire(location)
@@ -85,14 +89,3 @@ def _orientation(orientation):
         return Horizontal
     else:
         return Vertical
-
-
-
-if __name__ == "__main__":
-    battleships = BattleShips(GameStatsRepository())
-
-    print battleships.new_game()
-
-
-
-
